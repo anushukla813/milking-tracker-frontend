@@ -1,6 +1,6 @@
 import { useState,useEffect,useRef } from "react";
 
-const MUSIC_URL = "/public/6-Happy-Commercial-Piano(chosic.com).mp3";
+const MUSIC_URL = "/6-Happy-Commercial-Piano(chosic.com).mp3";
 export const useMilkingSession = ()=>{
     const[timer,setTimer] = useState(0); //Track timing
     const[isMilking,setIsMilking] = useState(false); //True when milking is active
