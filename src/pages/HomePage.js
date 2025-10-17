@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function HomePage() {
+ function HomePage() {
   return (
-    <div className="vh-100 d-flex flex-column align-items-start justify-content-start text-center p-3  text-white">
+    <div className="vh-100 d-flex flex-column align-items-start justify-content-start text-center p-5  text-white">
       <h1 className="display-6 fw-bold mb-5 mt-5 text-dark">Milking Tracker 🐄</h1>
       <Link
         to="/session"
