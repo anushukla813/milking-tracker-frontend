@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom'; 
 
 const API_BASE_URL = 'http://localhost:8080/api';
+
 
 const formatDuration = (seconds) => {
   if (seconds === undefined || seconds === null) return 'N/A';
@@ -23,9 +24,19 @@ export function HistoryPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
 
-  useEffect(() => {
-    const fetchHistory = async () => {
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000); 
+  };
+
+ 
+    const fetchHistory = useCallback(async () => {
       try {
         setLoading(true);
 
@@ -38,10 +49,31 @@ export function HistoryPage() {
       } finally {
         setLoading(false);
       }
-    };
-
+      }, [setSessions, setLoading, setError]);
+    
+    
+  
+ useEffect(() => {
     fetchHistory();
-  }, []); 
+}, [fetchHistory]);
+  const handleDeleteSession = async(sessionId)=>{
+  const confirmed = window.confirm("Are you sure you want to delete this session permanently?");
+
+  if(confirmed) {
+   try{
+      await axios.delete(`${API_BASE_URL}/sessions/${sessionId}`);
+      showToast(`Session deleted Successfully  : ${sessionId}`);
+      fetchHistory();
+      
+       
+    } 
+    catch(error){
+      showToast('Error deleting session. Please check your network connection.');
+      console.error('Delete error:', error);
+    }
+
+  }
+}
 
  
   if (loading) {
@@ -52,45 +84,83 @@ export function HistoryPage() {
     return <div className="">{error}</div>;
   }
 
+  
   return (
-    <div className="">
-      <div className="3">
-        <h1 className="">Milking History</h1>
-        <Link to="/" className="">
+    <div className="container p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Milking History</h2>
+        <Link to="/" className="btn btn-outline-secondary btn-sm">
           ← Back to Home
         </Link>
       </div>
 
       {sessions.length === 0 ? (
-        <div className="">
+        <div className="alert alert-info text-center mt-4">
           No milking sessions recorded yet. Start one from the Home page!
         </div>
       ) : (
-        <div className="">
-          {sessions.map((session) => (
-              <div key={session.id} className="">
-                <div className="">
-                  <span className="">
-                    Date: {formatTime(session.startTime).datePart}
-                  </span>
-                  <span className="">
-                    {session.milkQuantity.toFixed(1)} L
-                  </span>
-                </div>
-                <div className="">
-                  <div className="font-medium">Start Time:</div>
-                  <div>{formatTime(session.startTime).timePart}</div>
-                  <div className="font-medium">End Time:</div>
-                  <div>{formatTime(session.endTime).timePart}</div>
-                  <div className="font-medium">Duration:</div>
-                  <div>{formatDuration(session.duration)}</div>
-                </div>
-              </div>
-            )
-          )}
-        </div>
+        <div className="table-responsive">
+                <table className="table table-hover table-striped "> 
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Start Time</th>
+                            <th scope="col">End Time</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sessions.map((session) => (
+
+                            <tr key={session.id}>
+                                <td className="fw-bold">
+                                    {formatTime(session.startTime).datePart}
+                                </td>
+
+                                <td className="text-primary fw-bold"> 
+                                    {session.milkQuantity.toFixed(1)} L
+                                </td>
+                                
+                                <td>{formatTime(session.startTime).timePart}</td>
+                                
+                                <td>{formatTime(session.endTime).timePart}</td>
+
+                                <td>{formatDuration(session.duration)}</td>
+                                 <td>
+                                    <button 
+                                        className="btn btn-danger btn-sm"
+                                     onClick={() => handleDeleteSession(session.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+
+                    </tbody>
+                </table>
+            </div>
       )}
-    </div>
-  );
+
+
+ {toastMessage && (
+           
+            <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1050 }}>
+                <div 
+              
+                    className={`alert ${toastMessage.includes("Error") ? 'alert-danger' : 'alert-success'} alert-dismissible fade show m-0`} 
+                    role="alert"
+                >
+                    {toastMessage}
+                </div>
+            </div>
+        )}
+        
+ </div>
+ );
 }
+
+
 export default HistoryPage;
