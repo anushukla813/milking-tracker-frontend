@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
  function HomePage() {
   return (
-    <div className="vh-100 d-flex flex-column align-items-start justify-content-start text-center p-5  text-white">
+    <div className="vh-100 d-flex flex-column align-items-start justify-content-start text-center p-5 md:p-8 ">
       <h1 className="display-6 fw-bold mb-5 mt-5 text-dark">Milking Tracker 🐄</h1>
       <Link
         to="/session"
