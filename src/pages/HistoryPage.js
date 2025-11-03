@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom'; 
-
-const API_BASE_URL = 'http://localhost:8080/api';
-
+const API_BASE_URL =  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 const formatDuration = (seconds) => {
   if (seconds === undefined || seconds === null) return 'N/A';
@@ -24,6 +22,9 @@ export function HistoryPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
   
 
   const [toastMessage, setToastMessage] = useState(null);
@@ -46,6 +47,7 @@ export function HistoryPage() {
         setError(null);
       } catch (err) {
         setError('Failed to load history. Ensure the backend is running.');
+        console.error('Fetch error:', err);
       } finally {
         setLoading(false);
       }
@@ -56,38 +58,50 @@ export function HistoryPage() {
  useEffect(() => {
     fetchHistory();
 }, [fetchHistory]);
-  const handleDeleteSession = async(sessionId)=>{
-  const confirmed = window.confirm("Are you sure you want to delete this session permanently?");
 
-  if(confirmed) {
-   try{
-      await axios.delete(`${API_BASE_URL}/sessions/${sessionId}`);
-      showToast(`Session deleted Successfully  : ${sessionId}`);
-      fetchHistory();
-      
-       
-    } 
-    catch(error){
+const confirmDelete = (sessionId) => {
+    setSessionToDelete(sessionId);
+     setIsModalOpen(true);
+     };
+
+  const executeDelete = async() => {
+        setIsModalOpen(false);
+          if (!sessionToDelete) return;
+
+          try {
+      await axios.delete(`${API_BASE_URL}/sessions/${sessionToDelete}`);
+      showToast(`Session deleted successfully: ${sessionToDelete}`);
+      fetchHistory(); // Refresh the list
+    } catch(error) {
       showToast('Error deleting session. Please check your network connection.');
       console.error('Delete error:', error);
     }
-
+    setSessionToDelete(null); 
   }
-}
 
+   const cancelDelete = () => {
+    setIsModalOpen(false); 
+    setSessionToDelete(null); 
+  };
  
+
+  const handleDeleteSession = (sessionId) => {
+ confirmDelete(sessionId);
+  }
+  
   if (loading) {
-    return <div className="">Loading Milking History...</div>;
+    return <div className="p-4 md:p-8 text-center text-gray-700 font-medium">Loading Milking History...</div>;
   }
 
   if (error) {
-    return <div className="">{error}</div>;
+    return <div className="p-4 md:p-8 text-center text-red-600 font-medium border border-red-300 bg-red-50 rounded-lg">{error}</div>;
   }
+
 
   
   return (
-    <div className="container p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="container p-4 p-sm-4 p-md-5 mx-auto">
+      <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <h2 className="mb-0">Milking History</h2>
         <Link to="/" className="btn btn-outline-secondary btn-sm">
           ← Back to Home
@@ -106,8 +120,8 @@ export function HistoryPage() {
                             <th scope="col">Date</th>
                             <th scope="col">Quantity</th>
                             <th scope="col">Start Time</th>
-                            <th scope="col">End Time</th>
-                            <th scope="col">Duration</th>
+                            <th scope="col" className='d-none d-md-table-cell'>End Time</th>
+                            <th scope="col" className='d-none d-md-table-cell'>Duration</th>
                             <th scope="col">Delete</th>
                         </tr>
                     </thead>
@@ -125,9 +139,9 @@ export function HistoryPage() {
                                 
                                 <td>{formatTime(session.startTime).timePart}</td>
                                 
-                                <td>{formatTime(session.endTime).timePart}</td>
+                                <td className='d-none d-md-table-cell'>{formatTime(session.endTime).timePart}</td>
 
-                                <td>{formatDuration(session.duration)}</td>
+                                <td className='d-none d-md-table-cell'>{formatDuration(session.duration)}</td>
                                  <td>
                                     <button 
                                         className="btn btn-danger btn-sm"
@@ -142,6 +156,44 @@ export function HistoryPage() {
                     </tbody>
                 </table>
             </div>
+      )}
+         {isModalOpen && (
+
+        <div 
+          className="modal d-block" 
+          tabIndex="-1" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} 
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title text-danger fw-bold">Confirm Deletion</h5>
+                <button type="button" className="btn-close" onClick={cancelDelete} aria-label="Close"></button>
+              </div>
+              
+              <div className="modal-body">
+                <p>Are you sure you want to permanently delete this milking session?</p>
+              </div>
+
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={cancelDelete}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={executeDelete}
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
 
@@ -159,8 +211,7 @@ export function HistoryPage() {
         )}
         
  </div>
+
  );
 }
-
-
 export default HistoryPage;
