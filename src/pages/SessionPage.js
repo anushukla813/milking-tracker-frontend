@@ -3,7 +3,8 @@ import {useNavigate} from 'react-router-dom'
 import { useMilkingSession } from '../hooks/useMilkingSession';
 import axios from 'axios'; 
 
-const API_BASE_URL = 'http://localhost:8080/api'; 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api'; 
+
 
  function SessionPage() {
   const navigate = useNavigate();
