@@ -29,3 +29,11 @@ Styling: Bootstrap css
 State Management: React Hooks
 
 API Interaction: Standard fetch or Axios
+
+# Screenshots
+Home Screen<img src="assets/Home-Screen.png" alt="Milking Tracker Home Screen with Start and History buttons" width="400"/>
+Running Session<img src="assets/Running-Session.png" alt="Milking Session with live timer and Pause/Stop buttons" width="400"/>
+Paused Session<img src="assets/Paused-Session.png" alt="Milking Session showing the Pause button" width="400"/>
+Resume Session<img src="assets/Resume-Session.png" alt="Milking Session showing the Resume button" width="400"/>
+Enter Quantity<img src="assets/Enter-Milk-Quantity.png" alt="Form to input milk quantity after session stops" width="400"/>
+Milking History<img src="assets/Milking-History.png" alt="History page showing past records" width="400"/>
